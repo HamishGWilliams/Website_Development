@@ -1,0 +1,133 @@
+---
+title: "Testing Shiny Apps"
+author: "Hamish Williams"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+This Markdown marks the beginning of developing shiny HTML apps for developing course material aimed to be taught in classes. There are many analyses and techniques that are quite ambigious or are not taught very intuatively in a way that is accessible or easy for people to grasp the necessary steps to perform analyses, and understading the fundamentals of those analyses.
+
+The motivation for this is driven from a frustration of not being able to find many easy to follow guides and tools which walk you through the steps of different computational genomics techniques. Althought there are places where methods are laid out, they fail to give a full spectrum view to many of the issues that arise, and provide good examples and follow-throughs of how to deal with said issues. The worst offending website for this has to be forums such as stack overflow, where you get many many individuals asking questions to problems that they themselves don't understand what the issues are, and then you have the people who answer with overly complicated answers which are not accessible for people who are learning and trying these techniques as beginners. 
+
+So, I am developing shiny apps to create interactable sessions where someone can easily walk through the steps for these analyses, breaking them down into their fundamental elements, and explaining how they work, as well as providing examples of common issues that arise, and how to solve them.
+
+This first script will be testing the waters with the shiny app capabilities, and trying to generate some example HTMLs where interactabililty is possible.
+
+# Installing Shiny
+
+First things first, lets install shiny...
+
+```{r Installing_Shiny}
+install.packages("shiny")
+library(shiny)
+```
+
+# Define the Shiny App
+
+We thn need to create a **Shiny app** using the **"shinyAPP"** function. This takes 2 arguements:
+1. the UI 
+  - UI is responsible for defining the layout of the app 
+2. the server function
+  - Server function contains the logic and calculations
+  
+```{r define_shiny_app}
+# Define the app
+shinyApp(
+  ui = fluidPage(    # UI components go here
+    numericInput("num", "Enter a number:", value = 5),
+  plotOutput("plot")
+  ),
+  server = function(input, output) {     # Server logic goes here
+    output$plot <- renderPlot({
+    # Use input$num to create a plot
+    plot(1:input$num, main = "Dynamic Plot")
+  })
+  }
+)
+```
+
+# Learning to use Shiny
+
+Shiny seems to work in a very self-contained code format, there are the 2 main parts which we specifc (UI & Server), and then a call to the shinyApp function which generates our page.
+
+We can create a simplified version of this which we can then just manipulate the objects used later to change the app's functions and outputs:
+
+```{r Basic_app_layout}
+shinyApp(
+  ui = ui,
+  server = server
+)
+```
+
+We can simply change the "ui" and "server" objects to change the outputs, like such:
+
+```{r example_ui_and_server}
+# Define UI for app that draws a histogram ----
+ui = fluidPage(
+
+  # App title ----
+  titlePanel("Hello Shiny!"),
+
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
+
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+
+      # Input: Slider for the number of bins ----
+      sliderInput(inputId = "bins",
+                  label = "Number of bins:",
+                  min = 1,
+                  max = 50,
+                  value = 30)
+
+    ),
+
+    # Main panel for displaying outputs ----
+    mainPanel(
+
+      # Output: Histogram ----
+      plotOutput(outputId = "distPlot")
+
+    )
+  )
+)
+
+# Define server logic required to draw a histogram ----
+server <- function(input, output) {
+
+  # Histogram of the Old Faithful Geyser Data ----
+  # with requested number of bins
+  # This expression that generates a histogram is wrapped in a call
+  # to renderPlot to indicate that:
+  #
+  # 1. It is "reactive" and therefore should be automatically
+  #    re-executed when inputs (input$bins) change
+  # 2. Its output type is a plot
+  output$distPlot <- renderPlot({
+
+    x    <- faithful$waiting
+    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+
+    hist(x, breaks = bins, col = "#007bc2", border = "white",
+         xlab = "Waiting time to next eruption (in mins)",
+         main = "Histogram of waiting times")
+
+    })
+
+}
+```
+
+# Making my first Shiny App
+
+Ok so lets try and give this a shot. I'm going to do an example of Differential Expression Analyses first.
+
+
+
+
