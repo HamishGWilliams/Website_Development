@@ -6,10 +6,36 @@ library(shiny)
 library(shinyjs)
 
 # Data ----
-penguins <- read.table("./data/penguins.txt", header = T, sep = "\t")
+getwd()
+penguins <- read.table("./App_2/App_2/data/penguins.txt", header = T, sep = "\t")
 adelie <- subset(penguins, species == "Adelie")
 Chinstrap <- subset(penguins, species == "Chinstrap")
 Gentoo <- subset(penguins, species == "Gentoo")
+
+# Specify the CSS content
+css_content <- "/* styles.css */
+
+body {
+  background-color: #3498db; /* Background color: a shade of blue */
+  color: #ffffff; /* Text color: white */
+}
+"
+
+# Specify the file path where you want to save the CSS file
+css_file_path <- "styles.css"
+
+# Create the CSS file if it doesn't exist
+if (!file.exists(css_file_path)) {
+  css_content <- "
+  /* styles.css */
+
+  body {
+    background-color: #3498db; /* Background color: a shade of blue */
+    color: #ffffff; /* Text color: white */
+  }
+  "
+  writeLines(css_content, css_file_path)
+}
 
 
 # Define questions, answer choices, and correct answers
@@ -44,6 +70,7 @@ target_correct_answers <- 2
 
 # Define the UI
 ui <- fluidPage(
+  includeCSS(css_file_path), # include css styles
   titlePanel("Workshop 1: Probabilities"),
   
   tags$head(
@@ -53,14 +80,17 @@ ui <- fluidPage(
         position: sticky;
         top: 0;
         padding: 10px;
-        background-color: #f1f1f1;
+        background-color: #2980b9;
         border: 1px solid #d4d4d4;
       }
+
+      
     "))
   ),
   
   fluidRow(
     column(
+      includeCSS(css_file_path), # include css styles
       width = 3,
       id = "sidebar",
       class = "sticky",      
@@ -237,8 +267,7 @@ server <- function(input, output, session) {
   })
   
   checkAnswer <- function(answer, correct_answer = NULL) {
-    if (tolower(answer) %in% c(tolower(answer_object),
-                               tolower(correct_answer))) {
+    if (tolower(answer) %in% c(tolower(correct_answer))) {
       correct_answers(correct_answers() + 1)
       result <- "Correct!"
     } else {

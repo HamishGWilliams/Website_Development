@@ -1,0 +1,13 @@
+/* styles.css */
+
+body {
+  background-color: #3498db; /* Background color: a shade of blue */
+  color: #ffffff; /* Text color: white */
+}
+
+/* Add a rule for the side panel */
+.sidebar {
+  background-color: #2980b9; /* Different shade of blue for the side panel */
+  color: #ffffff; /* Text color for the side panel */
+}
+
