@@ -1,9 +1,20 @@
 # packages ----
 library(shiny)
 library(ggplot2)
+library(shinyjs)
 
-# Define UI for application that draws a histogram
-ui <- fluidPage(
+# Questions ----
+questions <- list(
+  list(
+    question_text = "When you move the mean values apart, the p-value...",
+    
+    answer_choices = c("","Decreases", "Stays the same", "Increases", "dOeS a DaNce"),
+    
+    correct_answer = "Increases")
+  )
+
+# UI ----
+ui = fluidPage(
 
     # Application title
     titlePanel("T.Test Interactable Example"),
@@ -13,7 +24,10 @@ ui <- fluidPage(
       tags$style(
         HTML("
         #t_test_output {
-          font-size: 18px;  # Adjust the font size as needed
+          font-size: 12px;  # Adjust the font size as needed
+        }
+        #codeOutput {
+          font-size: 12px; # Adjust the font size as needed
         }
       ")
       )
@@ -79,19 +93,55 @@ ui <- fluidPage(
                                     "Red" = "#e31a1c",    # Colorbrewer red
                                     "Purple" = "#6a3d9a", # Colorbrewer purple
                                     "Orange" = "#ff7f00"),# Colorbrewer orange
-                        selected = "#e31a1c")          # Default: red
+                        selected = "#e31a1c"), # Default: red
+          
+          br(),
+          
+          h2("Answer Checker"),
+          h3("Results"),
+          textOutput("result_text")
+          
         ),
 
         # Show a plot of the generated distribution
         mainPanel(
            plotOutput("distPlot",
-                      height = "500px"),
-           verbatimTextOutput("t_test_output")
+                      height = "300px"),
+           h2("Histogram Code input"),
+           verbatimTextOutput("codeOutput"),
+           h2("T.Test Results"),
+           verbatimTextOutput("t_test_output"),
+           
+           h2("How to use this ShinyAPP"),
+           p("This ShinyAPP (which is a package in r) allows a user to generate 
+             interactable HTML based 'websites' which can be shared with others
+             as a learning tool, and serves as another example of how useful
+             coding can be!"),
+           p("Using this interactable session will show you the visual links between 
+             distributions of data and the corresponding T.Test results from 
+            comparing these two distributions."),
+           p("You can adjust the mean (average) and standard deviation (sd) 
+             values in the left hand column of each group in the dataset, 
+             which will impact the shape of each group independently."),
+           p("You can also change the 'breaks' of the histogram plot in the 
+             'Global Options' section, which changes how many individual 
+             bars will represent the histogram. In other words, it changes 
+             how precisely you histogram is visualised"),
+           strong("Try moving the mean values around!"),
+           
+           h2("Question 1"),
+           h3("When you move the mean values apart, the p-value..."),
+           selectInput("student_answer1", "Select an answer:", choices = questions[[1]]$answer_choices),
+           useShinyjs(),  # Initialize shinyjs
+           actionButton("showHintBtn", "Show Hint"),
+           div(id = "hintBox", style = "display: none;",
+               h4("Hint: Move the means further apart and watch the P-VALUE!")),
+           actionButton("check_button1", "Check Answer")
         )
     )
 )
 
-# Define server logic required to draw a histogram
+# Server Logic ----
 server <- function(input, output) {
 
   # Reactive expression to generate normal distributions based on the slider input
@@ -172,6 +222,41 @@ server <- function(input, output) {
       }
     })
     
+    # Histogram Code Text ----
+    output$codeOutput <- renderPrint({
+      code <- sprintf(
+        'hist(data = data,\n     breaks = %d,\n     col = c("%s", "%s"),\n     main = "%s",\n     xlab = "%s",\n     ylab = "%s")\n',
+        input$bins,
+        input$color_group1,
+        input$color_group2,
+        "Comparison of Two Normal Distributions",
+        "Value",
+        "Frequency"
+      )
+      cat(code)
+      return(invisible())
+    })
+    
+    # Checking Answers ----
+    checkAnswer <- function(answer, correct_answer = NULL) {
+      if (tolower(answer) %in% c(tolower(correct_answer))) {
+        result <- "Correct!"
+      } else {
+        result <- "Incorrect. Try again."
+      }
+      output$result_text <- renderText(result)
+      output$correct_answers_text <- renderText(paste("Correct Answers: ", correct_answers()))
+    }
+    
+    # "Check Answer" Buttons ----
+    observeEvent(input$check_button1, {
+      checkAnswer(input$student_answer1, questions[[1]]$correct_answer)
+    })
+    
+    # Hint Box ----
+    observeEvent(input$showHintBtn, {
+      shinyjs::toggle("hintBox")
+    })
 }
 
 # Run the application 
