@@ -2,64 +2,6 @@
 library(shiny)
 library(ggplot2)
 
-# data ----
-
-# Set a seed for reproducibility
-set.seed(123)
-
-# Generate two example datasets
-n <- 100  # Number of observations in each group
-
-# Example 1: Normal distribution with mean 0 and standard deviation 1
-group1 <- rnorm(n, mean = 0, sd = 1)
-
-# Example 2: Normal distribution with mean 1 (slightly shifted) and standard deviation 1
-group2 <- rnorm(n, mean = 1, sd = 1)
-
-# Perform independent samples t-test
-t_test_result <- t.test(group1, group2)
-
-# Display the results
-cat("Independent Samples t-test Results:\n")
-cat("==================================\n")
-cat("p-value:", t_test_result$p.value, "\n")
-cat("Test Statistic:", t_test_result$statistic, "\n")
-cat("Degrees of Freedom:", t_test_result$parameter, "\n")
-cat("==================================\n")
-
-# Interpret the results
-if (t_test_result$p.value < 0.05) {
-  cat("The means of the two groups are significantly different.\n")
-} else {
-  cat("There is no significant difference in the means of the two groups.\n")
-}
-
-# Plot the distributions
-{
-par(mfrow = c(1, 2))
-hist(group1, col = "skyblue", main = "Group 1 (Mean = 0)")
-hist(group2, col = "lightcoral", main = "Group 2 (Mean = 1)")
-par(mfrow = c(1,1))
-}
-
-# Combine the datasets for plotting
-combined_data <- data.frame(
-  Value = c(group1, group2),
-  Group = rep(c("Group 1", "Group 2"), each = n)
-)
-
-# Calculate means
-mean_group1 <- mean(group1)
-mean_group2 <- mean(group2)
-
-ggplot(combined_data, aes(x = Value, fill = Group)) +
-  geom_histogram(position = "identity", alpha = 0.7, bins = 20, color = "white") +
-  geom_vline(xintercept = mean_group1, linetype = "dashed", color = "red", linewidth = 1) +
-  geom_vline(xintercept = mean_group2, linetype = "dashed", color = "blue", linewidth = 1) +
-  labs(title = "Comparison of Two Normal Distributions",
-       x = "Value", y = "Frequency") +
-  theme_minimal()
-
 # Define UI for application that draws a histogram
 ui <- fluidPage(
 
