@@ -7,6 +7,17 @@ ui <- fluidPage(
 
     # Application title
     titlePanel("T.Test Interactable Example"),
+    
+    # Add this block to include custom CSS for increasing font size
+    tags$head(
+      tags$style(
+        HTML("
+        #t_test_output {
+          font-size: 18px;  # Adjust the font size as needed
+        }
+      ")
+      )
+    ),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
@@ -30,6 +41,12 @@ ui <- fluidPage(
                         max = 2,
                         value = 0,
                         step = 0.1),
+            sliderInput("sd1",
+                        "SD value of distribution 1:",
+                        min = 1,
+                        max = 5,
+                        value = 1,
+                        step = 0.1),
             selectInput("color_group1", 
                         "Color for Group 1:", 
                         choices = c("Blue" = "#1f78b4",   # Colorbrewer blue
@@ -48,7 +65,12 @@ ui <- fluidPage(
                         max = 2,
                         value = 1,
                         step = 0.1),      
-
+          sliderInput("sd2",
+                      "SD value of distribution 2:",
+                      min = 1,
+                      max = 5,
+                      value = 1,
+                      step = 0.1),
             
             selectInput("color_group2", 
                         "Color for Group 2:", 
@@ -77,11 +99,13 @@ server <- function(input, output) {
     n <- 100
     mean_group1 <- input$mean1
     mean_group2 <- input$mean2
+    sd_group1 <- input$sd1
+    sd_group2 <- input$sd2
     
     # Generate example datasets
     set.seed(123)
-    group1 <- rnorm(n, mean = mean_group1, sd = 1)
-    group2 <- rnorm(n, mean = mean_group2, sd = 1)
+    group1 <- rnorm(n, mean = mean_group1, sd = sd_group1)
+    group2 <- rnorm(n, mean = mean_group2, sd = sd_group2)
     
     # Combine the datasets for plotting
     combined_data <- data.frame(
@@ -89,7 +113,9 @@ server <- function(input, output) {
       Group = rep(c("Group 1", "Group 2"), each = n)
     )
     
-    return(list(combined_data = combined_data, mean_group1 = mean_group1, mean_group2 = mean_group2))
+    return(list(combined_data = combined_data, 
+                mean_group1 = mean_group1, 
+                mean_group2 = mean_group2))
   })
   
   
