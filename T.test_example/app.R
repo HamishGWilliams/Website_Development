@@ -23,10 +23,10 @@ questions <- list(
     
     answer_choices = c("",
                        "The shape of the histograms", 
-                       "The significance of the test", 
+                       "It is a different value to measure significance", 
                        "The mean value of each histogram", 
-                       "The difference between the means of the groups"),
-    correct_answer = "The difference between the means of the groups"),
+                       "The difference in the mean values of the distributions"),
+    correct_answer = "It is a different value to measure significance"),
   list(
     question_text = "How does changing the 'Standard Deviation' (SD) 
     of the ditributions change their shape?",
