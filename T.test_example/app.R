@@ -2,22 +2,55 @@
 library(shiny)
 library(ggplot2)
 library(shinyjs)
+library(shinydashboard)
+library(kableExtra)
+library(thematic)
 
 # Questions ----
 questions <- list(
   list(
     question_text = "When you move the mean values apart, the p-value...",
     
-    answer_choices = c("","Decreases", "Stays the same", "Increases", "dOeS a DaNce"),
+    answer_choices = c("",
+                       "Decreases", 
+                       "Stays the same", 
+                       "Increases", 
+                       "dOeS a DaNce"),
     
-    correct_answer = "Increases")
+    correct_answer = "Decreases"),
+  list(
+    question_text = "What does the 'Test Statistic' (or 'T value') represent?",
+    
+    answer_choices = c("",
+                       "The shape of the histograms", 
+                       "The significance of the test", 
+                       "The mean value of each histogram", 
+                       "The difference between the means of the groups"),
+    correct_answer = "The difference between the means of the groups"),
+  list(
+    question_text = "How does changing the 'Standard Deviation' (SD) 
+    of the ditributions change their shape?",
+    
+    answer_choices = c("",
+                       "They stay the same", 
+                       "They affect the 'flatness/sharpness' of the distributions" , 
+                       "They change the means of the distributions", 
+                       "They change the distribution from normally distributed 
+                       binomally distributed"),
+    correct_answer = "They affect the 'flatness/sharpness' of the distributions")
   )
+
+# Correct Answers number ----
+target_correct_answers <- length(questions)
 
 # UI ----
 ui = fluidPage(
+  
+    # Change theme of page ----
+    theme = bslib::bs_theme(bootswatch = "darkly"),
 
     # Application title
-    titlePanel("T.Test Interactable Example"),
+    titlePanel("T.Test Interactable ShinyAPP", windowTitle = "My Shiny App"),
     
     # Add this block to include custom CSS for increasing font size
     tags$head(
@@ -29,88 +62,114 @@ ui = fluidPage(
         #codeOutput {
           font-size: 12px; # Adjust the font size as needed
         }
-      ")
-      )
+        .sticky-title {
+         position: fixed;
+          top: 0;
+          width: 100%;
+          z-index: 1000;
+        }
+        .content {
+          margin-left: 400px; /* Adjust the margin as needed */;
+          margin-right: 100px;
+        }
+      "))
     ),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
-        sidebarPanel(
-          
-          h2("Universal Options"),
-          
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 20,
-                        value = 10),
-            checkboxInput("show_ci", "Show 95% Confidence Intervals", value = TRUE),
-            
-            h2("Group 1"),
-            
-            # Distribution 1
-            sliderInput("mean1",
-                        "mean value of distribution 1:",
-                        min = -2,
-                        max = 2,
-                        value = 0,
-                        step = 0.1),
-            sliderInput("sd1",
-                        "SD value of distribution 1:",
-                        min = 1,
-                        max = 5,
-                        value = 1,
-                        step = 0.1),
-            selectInput("color_group1", 
-                        "Color for Group 1:", 
-                        choices = c("Blue" = "#1f78b4",   # Colorbrewer blue
-                                    "Green" = "#33a02c",  # Colorbrewer green
-                                    "Red" = "#e31a1c",    # Colorbrewer red
-                                    "Purple" = "#6a3d9a", # Colorbrewer purple
-                                    "Orange" = "#ff7f00"),# Colorbrewer orange
-                        selected = "#1f78b4"),         # Default: blue
-            
-            h2("Group 2"),
-            
-            # Distribution 2
-            sliderInput("mean2",
-                        "mean value of distribution 2:",
-                        min = -2,
-                        max = 2,
-                        value = 1,
-                        step = 0.1),      
-          sliderInput("sd2",
-                      "SD value of distribution 2:",
-                      min = 1,
-                      max = 5,
-                      value = 1,
-                      step = 0.1),
-            
-            selectInput("color_group2", 
-                        "Color for Group 2:", 
-                        choices = c("Blue" = "#1f78b4",   # Colorbrewer blue
-                                    "Green" = "#33a02c",  # Colorbrewer green
-                                    "Red" = "#e31a1c",    # Colorbrewer red
-                                    "Purple" = "#6a3d9a", # Colorbrewer purple
-                                    "Orange" = "#ff7f00"),# Colorbrewer orange
-                        selected = "#e31a1c"), # Default: red
-          
-          br(),
-          
-          h2("Answer Checker"),
-          h3("Results"),
-          textOutput("result_text")
-          
-        ),
+      sidebarPanel(
+        style = "position:fixed;width:inherit;",
+        width = 3,
+        tabsetPanel(
+          tabPanel("Global Options",
+                   h4("Universal Options"),
+                   sliderInput("bins",
+                               "Number of bins:",
+                               min = 1,
+                               max = 30,
+                               value = 15),
+                   checkboxInput("show_ci", "Show 95% Confidence Intervals", value = FALSE),
+                   
+                   h5("Change Plot view"),
+                   sliderInput("x_limit_min", "X-axis Minimum:", min = -10, max = 10, value = -5),
+                   sliderInput("x_limit_max", "X-axis Maximum:", min = -10, max = 10, value = 5),
+                   sliderInput("y_limit_max", "Y-axis Maximum:", min = 0, max = 50, value = 30)
+          ),
+          tabPanel("Distribution Options",
+                   sliderInput("mean1",
+                               "mean value of distribution 1:",
+                               min = -3,
+                               max = 3,
+                               value = 0,
+                               step = 0.1),
+                   sliderInput("sd1",
+                               "SD value of distribution 1:",
+                               min = 1,
+                               max = 3,
+                               value = 1,
+                               step = 0.1),
+                   selectInput("color_group1", 
+                               "Color for Group 1:", 
+                               choices = c("Blue" = "#1f78b4",
+                                           "Green" = "#33a02c",
+                                           "Red" = "#e31a1c",
+                                           "Purple" = "#6a3d9a",
+                                           "Orange" = "#ff7f00"),
+                               selected = "#1f78b4"),
+                   
+                   sliderInput("mean2",
+                               "mean value of distribution 2:",
+                               min = -3,
+                               max = 3,
+                               value = 1,
+                               step = 0.1),      
+                   sliderInput("sd2",
+                               "SD value of distribution 2:",
+                               min = 1,
+                               max = 2,
+                               value = 1,
+                               step = 0.1),
+                   selectInput("color_group2", 
+                               "Color for Group 2:", 
+                               choices = c("Blue" = "#1f78b4",
+                                           "Green" = "#33a02c",
+                                           "Red" = "#e31a1c",
+                                           "Purple" = "#6a3d9a",
+                                           "Orange" = "#ff7f00"),
+                               selected = "#e31a1c")
+          ),
+          tabPanel("Answer Checker",
+                   h2("Answer Checker"),
+                   h3("Results"),
+                   textOutput("result_text"),
+                   br(),
+                   h3("Correct Answers"),
+                   textOutput("correct_answers_text"), 
+                   br(),
+                   h3("Final Result"),
+                   textOutput("final_result_text"),
+                   br(),
+                   actionButton("reset_button", "Reset Answers")
+          )
+        )
+      ),
 
         # Show a plot of the generated distribution
         mainPanel(
+          
+          class = "content",
+          
            plotOutput("distPlot",
-                      height = "300px"),
-           h2("Histogram Code input"),
-           verbatimTextOutput("codeOutput"),
+                      height = "500px"),
+           
+           # T-test results output ----
            h2("T.Test Results"),
            verbatimTextOutput("t_test_output"),
+           
+           # histogram code output ----
+           h2("Histogram Code input"),
+           verbatimTextOutput("codeOutput"),
+
            
            h2("How to use this ShinyAPP"),
            p("This ShinyAPP (which is a package in r) allows a user to generate 
@@ -120,6 +179,12 @@ ui = fluidPage(
            p("Using this interactable session will show you the visual links between 
              distributions of data and the corresponding T.Test results from 
             comparing these two distributions."),
+           strong("Click the Sidebar Tab options to move between global options which 
+             affect the plotting options; distribution options which alter the 
+             distributions of the groups; and an answer checker for the 
+             short quiz at the end!"),
+           br(),
+           br(),
            p("You can adjust the mean (average) and standard deviation (sd) 
              values in the left hand column of each group in the dataset, 
              which will impact the shape of each group independently."),
@@ -129,20 +194,65 @@ ui = fluidPage(
              how precisely you histogram is visualised"),
            strong("Try moving the mean values around!"),
            
+           h1("Quiz"),
+           
            h2("Question 1"),
            h3("When you move the mean values apart, the p-value..."),
            selectInput("student_answer1", "Select an answer:", choices = questions[[1]]$answer_choices),
            useShinyjs(),  # Initialize shinyjs
-           actionButton("showHintBtn", "Show Hint"),
-           div(id = "hintBox", style = "display: none;",
+           actionButton("showHintBtn1", "Show Hint"),
+           div(id = "hintBox1", style = "display: none;",
                h4("Hint: Move the means further apart and watch the P-VALUE!")),
-           actionButton("check_button1", "Check Answer")
+           actionButton("check_button1", "Check Answer"),
+           
+           br(),
+          
+           h2("Question 2"),
+           h3("What does the 'Test Statistic' (or 'T value') represent?"),
+           selectInput("student_answer2", "Select an answer:", choices = questions[[2]]$answer_choices),
+           useShinyjs(),  # Initialize shinyjs
+           actionButton("showHintBtn2", "Show Hint"),
+           div(id = "hintBox2", style = "display: none;",
+               h4("Hint: When the distributions move apart, the t value increases, 
+                  what could this mean?")),
+           actionButton("check_button2", "Check Answer"),
+          
+          br(),
+          
+          h2("Question 3"),
+          h3("How does changing the 'Standard Deviation' (SD) of the ditributions change their shape?"),
+          selectInput("student_answer3", "Select an answer:", choices = questions[[3]]$answer_choices),
+          useShinyjs(),  # Initialize shinyjs
+          actionButton("showHintBtn3", "Show Hint"),
+          div(id = "hintBox3", style = "display: none;",
+              h4("Hint: Move the SD sliders in the 'Distribution options' tab 
+                 and watch how the ditributions change")),
+          actionButton("check_button3", "Check Answer"),
+           
+           # Added lines at end for scrolling
+           
+           br(),
+           br(),
+           br(),
+           br(),
+           br(),
+           br(),
+           br(),
+           br(),
+           br()
+           
         )
     )
 )
 
 # Server Logic ----
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
+  # Correct answers reactive input ----
+  correct_answers <- reactiveVal(0)
+  
+  # Final Answers Reactive input ----
+  final_result_text <- reactiveVal("")
 
   # Reactive expression to generate normal distributions based on the slider input
   generate_distributions <- reactive({
@@ -168,6 +278,8 @@ server <- function(input, output) {
                 mean_group2 = mean_group2))
   })
   
+  # Set to theme of page ----
+  thematic::thematic_shiny()
   
     output$distPlot <- renderPlot({
         # generate bins based on input$bins from ui.R
@@ -182,7 +294,7 @@ server <- function(input, output) {
           geom_histogram(position = "identity", alpha = 0.7, bins = input$bins, color = "white") +
           geom_vline(xintercept = input$mean1, linetype = "dashed", color = input$color_group1, linewidth = 1) +
           geom_vline(xintercept = input$mean2, linetype = "dashed", color = input$color_group2, linewidth = 1) +
-          scale_fill_manual(values = c(input$color_group1, input$color_group2)) # Set fill colors manually
+          scale_fill_manual(values = c(input$color_group1, input$color_group2))  # Set fill colors manually
           
         if (input$show_ci) {
           p <- p +
@@ -194,6 +306,10 @@ server <- function(input, output) {
           labs(title = "Comparison of Two Normal Distributions",
                x = "Value", y = "Frequency") +
           theme_bw()
+        
+        p + ylim(0, input$y_limit_max)
+        
+        p + coord_cartesian(xlim = c(input$x_limit_min, input$x_limit_max)) 
     })
     
     # Reactive expression to perform t-test based on the generated datasets
@@ -209,8 +325,8 @@ server <- function(input, output) {
     output$t_test_output <- renderPrint({
       cat("Independent Samples t-test Results:\n")
       cat("==================================\n")
-      cat("p-value:", t_test_results()$p.value, "\n")
-      cat("Test Statistic:", t_test_results()$statistic, "\n")
+      cat("p-value:", t_test_results()$p.value, "# Significance of the difference", "\n")
+      cat("Test Statistic:", t_test_results()$statistic, "# Difference between group 1 and group 2", "\n")
       cat("Degrees of Freedom:", t_test_results()$parameter, "\n")
       cat("==================================\n")
       
@@ -225,7 +341,12 @@ server <- function(input, output) {
     # Histogram Code Text ----
     output$codeOutput <- renderPrint({
       code <- sprintf(
-        'hist(data = data,\n     breaks = %d,\n     col = c("%s", "%s"),\n     main = "%s",\n     xlab = "%s",\n     ylab = "%s")\n',
+        'hist(data = data, # select which "data" object to use\n     
+        breaks = %d, # Number of "breaks" \n     
+        col = c("%s", "%s"), # HTML colour IDs\n     
+        main = "%s", # Changes the name of the plot title\n     
+        xlab = "%s", # Changes the X-axis name\n     
+        ylab = "%s") # Changes the Y-axis name\n',
         input$bins,
         input$color_group1,
         input$color_group2,
@@ -240,23 +361,56 @@ server <- function(input, output) {
     # Checking Answers ----
     checkAnswer <- function(answer, correct_answer = NULL) {
       if (tolower(answer) %in% c(tolower(correct_answer))) {
+        correct_answers(correct_answers() + 1)
         result <- "Correct!"
       } else {
         result <- "Incorrect. Try again."
       }
+      
       output$result_text <- renderText(result)
       output$correct_answers_text <- renderText(paste("Correct Answers: ", correct_answers()))
+      
+      if (correct_answers() == target_correct_answers) {
+        final_result_text("Congratulations! You got all the answers correct!")
+      } else {
+        final_result_text("")
+      }
     }
+    
+    # Final result text output ----
+    output$final_result_text <- renderText(final_result_text())
     
     # "Check Answer" Buttons ----
     observeEvent(input$check_button1, {
       checkAnswer(input$student_answer1, questions[[1]]$correct_answer)
     })
     
-    # Hint Box ----
-    observeEvent(input$showHintBtn, {
-      shinyjs::toggle("hintBox")
+    observeEvent(input$check_button2, {
+      checkAnswer(input$student_answer2, questions[[2]]$correct_answer)
     })
+    
+    observeEvent(input$check_button3, {
+      checkAnswer(input$student_answer3, questions[[3]]$correct_answer)
+    })
+    
+    # "Reset Answers" Button ----
+    observeEvent(input$reset_button, {
+      correct_answers(0)
+      final_result_text("")
+    })
+    
+    # Hint Boxes ----
+    observeEvent(input$showHintBtn1, {
+      shinyjs::toggle("hintBox1")
+    })
+    observeEvent(input$showHintBtn2, {
+      shinyjs::toggle("hintBox2")
+    })
+    observeEvent(input$showHintBtn3, {
+      shinyjs::toggle("hintBox3")
+    })
+    
+    
 }
 
 # Run the application 
