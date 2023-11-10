@@ -49,6 +49,8 @@ plot(example_data$Explanatory, example_data$Response, main = "Scatter Plot",
 
 # Fit a linear model
 linear_model <- lm(Response ~ Explanatory, data = example_data)
+summary <- summary(linear_model)
+summary
 
 # Add the regression line to the plot
 abline(linear_model, col = "black")
@@ -117,7 +119,7 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
             sliderInput("n",
-                        "Number of observations):",
+                        "Number of observations:",
                         min = 1,
                         max = 1000,
                         value = 100,
@@ -125,7 +127,7 @@ ui <- fluidPage(
             
           
             sliderInput("sd",
-                        "Variability:",
+                        "Variability (Standard Deviation):",
                         min = 0,
                         max = 5,
                         value = 2.5,
@@ -133,8 +135,8 @@ ui <- fluidPage(
             
             sliderInput("corr",
                         "Correlation:",
-                        min = -3,
-                        max = 3,
+                        min = -2,
+                        max = 2,
                         value = 1,
                         step = 0.1),
             
@@ -173,13 +175,16 @@ ui <- fluidPage(
         # Show a plot of the generated distribution
         mainPanel(
            plotOutput("Plot"),
+           
+           h2("Linear Model Equation"),
+           verbatimTextOutput("equation"),
 
            # lm outputs ----
            h2("Linear Model Statistcal outputs"),
            verbatimTextOutput("lm_output"),
                       
            # histogram code output ----
-           h2("Histogram Code input"),
+           h2("Scatterplot Code input"),
            verbatimTextOutput("codeOutput")
 
         )
@@ -193,8 +198,8 @@ server <- function(input, output) {
   data <- reactive({
     # Generate example datasets
     set.seed(123)
-    explanatory_variable <- rnorm(input$n, mean = 0, sd = 1)
-    response_variable <- input$corr*explanatory_variable + rnorm(input$n, mean = 0, sd = input$sd) + input$intercept
+    explanatory_variable <- rnorm(input$n, mean = 5, sd = 1)
+    response_variable <- input$corr*explanatory_variable + rnorm(input$n, mean = 10, sd = input$sd) + input$intercept
     
     # Combine the datasets for plotting
     example_data <- data.frame(Explanatory = explanatory_variable, Response = response_variable)
@@ -216,10 +221,12 @@ server <- function(input, output) {
          col = input$colour,
          pch = input$pch,
          cex = input$size,
-         xlim = c(-3,3),
-         ylim = c(-20,20))
+         xlim = c(0,10),
+         ylim = c(-20,40))
     
-    abline(coef(data()$linear_model)[1:2], col = input$colour, lwd = 2)
+    abline(coef(data()$linear_model)[1:2], col = "black", lwd = 2)
+    
+    abline(v = 0, col = "red", lty = 2)
   })
   
   # Scatterplot Code ----
@@ -233,7 +240,10 @@ server <- function(input, output) {
         ylab = "%s", # Changes the Y-axis name\n
         col = "%s", # HTML colour IDs\n    
         pch = %s, # Changes the shape of the datapoints \n
-        cex = %s) # Changes the size of the datapoints',
+        cex = %s) # Changes the size of the datapoints \n
+      
+      abline("linear_model", lwd = 2, col = "black) = # line for lm',
+      
       
       "Response_Variable",
       "Explanatory_Variable",
@@ -261,10 +271,17 @@ server <- function(input, output) {
     if (data()$anova$'Pr(>F)'[1] < 0.05) {
       cat("The model significantly explains the data.\n")
     } else {
-      cat("There model does NOT explain the data.\n")
+      cat("The model does NOT explain the data significantly.\n")
     }
   })
-  
+
+  # y = m*x + c equation ----
+  output$equation <- renderPrint({
+    cat("Linear Model Equation:\n")
+    cat("==================================\n")
+    cat("Equation: y =", data()$summary$coefficients[2], "* x +", data()$summary$coefficients[1],"\n")
+    cat("==================================\n")
+  })
 
 }
 
