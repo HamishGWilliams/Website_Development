@@ -21,22 +21,6 @@
   # the explanatory variable will need to be the same length as the response
   # it will also need to randomly select a variability value [-n:n]
 
-# Packages ----
-library(shiny)
-
-# Making an example dataset test: ----
-
-explanatory <- rnorm(20, mean = 5, sd = 1)
-explanatory <- seq(from = 0.5, to = 10, by = 0.5)
-boxplot(explanatory)
-response <- seq(from = 0.5, to = 10, by = 0.5)
-response2 <- response*(0.5*explanatory) #+(runif(1, min = -2, max = 2)))
-df <- data.frame(response2, explanatory)
-plot(df$response2~df$explanatory)
-
-# I *kinda* had the right idea, but was applying it wrong,
-# So I generated the code with chatGPT:
-
 # ChatGPT's code ----
 
 # Set a seed for reproducibility
@@ -51,7 +35,7 @@ explanatory_variable <- rnorm(n, mean = 0, sd = 1)
 # Adjust the standard deviation to control the correlation
 # Higher standard deviation leads to lower correlation
 # Lower standard deviation leads to higher correlation
-response_variable <- explanatory_variable + rnorm(n, mean = 0, sd = 2)
+response_variable <- 1*explanatory_variable + rnorm(n, mean = 0, sd = 1)+(-5)
 
 # Create a data frame
 example_data <- data.frame(Explanatory = explanatory_variable, Response = response_variable)
@@ -59,13 +43,15 @@ example_data <- data.frame(Explanatory = explanatory_variable, Response = respon
 # Scatter plot to visualize the correlation 
 {
 plot(example_data$Explanatory, example_data$Response, main = "Scatter Plot", 
-     xlab = "Explanatory Variable", ylab = "Response Variable")
+     xlab = "Explanatory Variable", ylab = "Response Variable",
+     xlim = c(-10,10),
+     ylim = c(-10,10))
 
 # Fit a linear model
 linear_model <- lm(Response ~ Explanatory, data = example_data)
 
 # Add the regression line to the plot
-abline(linear_model, col = "white")
+abline(linear_model, col = "black")
 }
 
 # ChatGPT adding in a categorical variable ----
@@ -133,15 +119,31 @@ ui <- fluidPage(
             sliderInput("n",
                         "Number of observations):",
                         min = 1,
-                        max = 100,
-                        value = 50,
+                        max = 1000,
+                        value = 100,
                         step = 1),
+            
+          
             sliderInput("sd",
                         "Variability:",
                         min = 0,
                         max = 5,
                         value = 2.5,
                         step = 0.1),
+            
+            sliderInput("corr",
+                        "Correlation:",
+                        min = -3,
+                        max = 3,
+                        value = 1,
+                        step = 0.1),
+            
+            sliderInput("intercept",
+                        "Intercept adjustment:",
+                        min = -5,
+                        max = 5,
+                        value = 0,
+                        step = 1),
             
             sliderInput("pch",
                         "Shape of datapoints:",
@@ -192,7 +194,7 @@ server <- function(input, output) {
     # Generate example datasets
     set.seed(123)
     explanatory_variable <- rnorm(input$n, mean = 0, sd = 1)
-    response_variable <- explanatory_variable + rnorm(input$n, mean = 0, sd = input$sd)
+    response_variable <- input$corr*explanatory_variable + rnorm(input$n, mean = 0, sd = input$sd) + input$intercept
     
     # Combine the datasets for plotting
     example_data <- data.frame(Explanatory = explanatory_variable, Response = response_variable)
@@ -213,7 +215,9 @@ server <- function(input, output) {
          xlab = "Explanatory Variable", ylab = "Response Variable",
          col = input$colour,
          pch = input$pch,
-         cex = input$size)
+         cex = input$size,
+         xlim = c(-3,3),
+         ylim = c(-20,20))
     
     abline(coef(data()$linear_model)[1:2], col = input$colour, lwd = 2)
   })
